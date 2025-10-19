@@ -1,3 +1,55 @@
+# Descripciones-Imagenes Microservice
+
+Guía rápida para levantar el servicio en modo desarrollo.
+
+> Nota: estas instrucciones están orientadas a desarrollo local, no a producción.
+
+## Requisitos
+
+- Node.js (v18+ recomendado)
+- npm
+- PostgreSQL o la base de datos indicada en `DATABASE_URL` (usamos Prisma con Supabase)
+- NATS server
+
+## Instalación
+
+1. Clona el repositorio y entra en la carpeta:
+
+```powershell
+cd C:\ruta\a\descripciones-imagenes-ms
+npm install
+```
+
+2. Crea un archivo `.env` en la raíz con las variables necesarias teniendo en cuenta el .env.template:
+
+```
+PORT=3XXX
+NATS_SERVERS=nats://localhost:4222
+```
+
+- `PORT`: puerto donde correrá la app en desarrollo.
+- `NATS_SERVERS`: lista separada por comas si hay múltiples servidores NATS.
+
+
+## Comandos útiles (desarrollo)
+
+- Levantar en modo observación (recarga automática):
+
+```powershell
+npm run start:dev
+```
+
+## Mensajería (NATS)
+
+Se levanta un servidor de NATS con docker si no se tiene
+
+```powershell
+docker run -d --name nats-main -p 4222:4222 -p 8222:8222 nats 
+```
+
+Asegurarse de que `NATS_SERVERS` en `.env` apunte a `nats://localhost:4222`.
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

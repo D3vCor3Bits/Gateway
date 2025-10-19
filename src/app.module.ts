@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { GatewayModule } from './gateway/gateway.module';
+import { DescripcionesImagenesModule } from './descripciones-imagenes/descripciones-imagenes.module';
 
 @Module({
-  imports: [GatewayModule],
+  imports: [DescripcionesImagenesModule],
   controllers: [],
   providers: [],
 })
