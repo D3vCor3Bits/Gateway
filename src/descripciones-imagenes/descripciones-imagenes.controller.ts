@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
-import { UpdateDescripcionesImageneDto } from './dto/update-descripciones-imagene.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
+import { CrearGroundTruthDto } from './dto';
 
 @Controller('descripciones-imagenes')
 export class DescripcionesImagenesController {
@@ -71,15 +71,43 @@ export class DescripcionesImagenesController {
     return "hola" 
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  //Buscar una imagen por id
+  @Get('buscarImagen/:id')
+  buscarImagen(@Param('id', ParseIntPipe) id: number) {
+    return this.client.send({cmd:'buscarImagen'}, {id})
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDescripcionesImageneDto: UpdateDescripcionesImageneDto) {
+  update(@Param('id') id: string, @Body() updateDescripcionesImageneDto: any) {
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
   }
+
+  //DESCRIPCION
+  
+
+  //GROUNDTRUH
+  @Post('crearGroundTruth')
+  crearGroundTruth(@Body() grondTruthDto: CrearGroundTruthDto){
+    return this.client.send({cmd:'crearGroundTruth'}, grondTruthDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err)
+      })
+    )
+  }
+
+  //SESSIONS
+
+
+  //PUNTAJE
+
+
 }
