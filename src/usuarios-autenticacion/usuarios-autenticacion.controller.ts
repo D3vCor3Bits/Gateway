@@ -11,6 +11,8 @@ export class UsuariosAutenticacionController {
     @Inject(NATS_SERVICE) private readonly client: ClientProxy
 ) {}
 
+  //NOTA: SE DEBE HACER UN DTO para cada cosa que se reciba dentro del MS
+  //Se hace en el MS y luego se copia y se pega exactamente eso mismo aca,
   @Post('crearUsuario')
   create(@Body() createUsuariosAutenticacionDto: CreateUsuariosAutenticacionDto) {
     //El primer parametro siempre es lo que se pone en el MessagePattern(EventPattern)
