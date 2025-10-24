@@ -6,6 +6,8 @@ import { catchError, throwError } from 'rxjs';
 import { CrearGroundTruthDto, sesionEstadoDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
 import { PaginationDto } from 'src/common';
+import { SesionPaginationDto } from './dto/sesion-pagination.dto';
+import { CrearDescriptionDto } from './dto/crear-descripcion.dto';
 
 @Controller('descripciones-imagenes')
 export class DescripcionesImagenesController {
@@ -94,7 +96,20 @@ export class DescripcionesImagenesController {
   remove(@Param('id') id: string) {
   }
 
-  //DESCRIPCION
+  //------------- DESCRIPCION ----------------
+
+  @Post('crearDescripcion')
+  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
+    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+
+
   
 
   //--------------GROUNDTRUH----------------
@@ -145,18 +160,15 @@ export class DescripcionesImagenesController {
   }
 
   //Listar sesiones
-
-
-  //Listar sesiones por estado
-  @Get('sesionesEstado/:status')
-  listarSesionesEstado(@Param() sesionEstadoDto: sesionEstadoDto, @Query() paginationDto: PaginationDto){
-    return this.client.send({cmd:'listarSesiones'},{...paginationDto, estado_sesion: sesionEstadoDto.estado_sesion})
+  @Get('listarSesiones')
+  listarSesiones(@Query() sesionPaginationDto: SesionPaginationDto){
+    return this.client.send({cmd:'listarSesiones'}, sesionPaginationDto)
     .pipe(
       catchError(err => {
         throw new RpcException(err);
       })
     )
-  } 
+  }
 
 
   //PUNTAJE
