@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
-import { CrearGroundTruthDto } from './dto';
+import { CrearGroundTruthDto, sesionEstadoDto } from './dto';
+import { CrearSesionDto } from './dto/crear-sesion.dto';
+import { PaginationDto } from 'src/common';
+import { SesionPaginationDto } from './dto/sesion-pagination.dto';
+import { CrearDescriptionDto } from './dto/crear-descripcion.dto';
 
 @Controller('descripciones-imagenes')
 export class DescripcionesImagenesController {
@@ -11,6 +15,8 @@ export class DescripcionesImagenesController {
     @Inject(NATS_SERVICE) private readonly client: ClientProxy
   ) {}
 
+  //--------------IMAGENES----------------
+  
   @Post('uploadImage')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile(
@@ -90,10 +96,25 @@ export class DescripcionesImagenesController {
   remove(@Param('id') id: string) {
   }
 
-  //DESCRIPCION
+  //------------- DESCRIPCION ----------------
+
+  @Post('crearDescripcion')
+  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
+    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+
+
   
 
-  //GROUNDTRUH
+  //--------------GROUNDTRUH----------------
+
+  //Crear groundTruth
   @Post('crearGroundTruth')
   crearGroundTruth(@Body() grondTruthDto: CrearGroundTruthDto){
     return this.client.send({cmd:'crearGroundTruth'}, grondTruthDto)
@@ -104,7 +125,50 @@ export class DescripcionesImagenesController {
     )
   }
 
-  //SESSIONS
+  //Buscar groundTruth por id
+  @Get('buscarGroundTruth/:id')
+  buscarGroundTruth(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'buscarGroundTruth'}, {id})
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err)
+      })
+    )
+  }
+
+  //Buscar groundTruth por id imágen
+  @Get('buscarGroundTruth/:id')
+  buscarGroundTruthIdImagen(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'buscarGroundTruthIdImagen'}, {id})
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err)
+      })
+    )
+  }
+
+  //---------------SESSIONS-----------------
+  //Crear sesión
+  @Post('crearSesion')
+  crearSesion(@Body() crearSesionDto: CrearSesionDto){
+    return this.client.send({cmd:'crearSesion'},crearSesionDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+  //Listar sesiones
+  @Get('listarSesiones')
+  listarSesiones(@Query() sesionPaginationDto: SesionPaginationDto){
+    return this.client.send({cmd:'listarSesiones'}, sesionPaginationDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
 
 
   //PUNTAJE
