@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
-import { CrearGroundTruthDto, sesionEstadoDto } from './dto';
+import { CrearGroundTruthDto, GetAIresponseDto, sesionEstadoDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
 import { PaginationDto } from 'src/common';
 import { SesionPaginationDto } from './dto/sesion-pagination.dto';
@@ -94,23 +94,7 @@ export class DescripcionesImagenesController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-  }
-
-  //------------- DESCRIPCION ----------------
-
-  @Post('crearDescripcion')
-  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
-    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
-    .pipe(
-      catchError(err => {
-        throw new RpcException(err);
-      })
-    )
-  }
-
-
-
-  
+  }  
 
   //--------------GROUNDTRUH----------------
 
@@ -174,4 +158,26 @@ export class DescripcionesImagenesController {
   //PUNTAJE
 
 
+    //------------- DESCRIPCION ----------------
+
+  @Post('crearDescripcion')
+  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
+    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+  @Post('geminiResponse')
+  @UsePipes(new ValidationPipe({transform: true}))
+  geminiResponse(@Body() geminiResponse: GetAIresponseDto){
+    return this.client.send({cmd:'geminiResponse'}, geminiResponse)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
 }
