@@ -15,19 +15,11 @@ import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
 import { loginUsuarioDto } from './dto/login-usuario.dto';
+import { asignarMedpacienteDto } from './dto/asignar-medpaciente.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
   constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
-
-  //NOTA: SE DEBE HACER UN DTO para cada cosa que se reciba dentro del MS
-  //Se hace en el MS y luego se copia y se pega exactamente eso mismo aca,
-  /*@Post('crearUsuario')
-  create(@Body() createUsuariosAutenticacionDto: CreateUsuariosAutenticacionDto) {
-    //El primer parametro siempre es lo que se pone en el MessagePattern(EventPattern)
-    //El segundo parametro es el payload
-    return this.client.send({cmd:'createUsuariosAutenticacion'},{})
-  } */
 
   @Post('crearUsuario')
   create(@Body() dto: CreateUsuariosAutenticacionDto) {
@@ -76,5 +68,14 @@ export class UsuariosAutenticacionController {
   @Delete('borrarPerfil/:id')
   remove(@Param('id') id: string) {
     return this.client.send({ cmd: 'removeUsuariosAutenticacion' }, {});
+  }
+
+  @Post('asignarMedico')
+  asignarMedico(@Body() dto: asignarMedpacienteDto) {
+    return this.client.send({ cmd: 'asignarMedpaciente' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 }
