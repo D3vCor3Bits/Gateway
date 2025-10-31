@@ -1,13 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
-import { CrearGroundTruthDto, sesionEstadoDto } from './dto';
+import { ActualizarGroundTruthDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
-import { PaginationDto } from 'src/common';
-import { SesionPaginationDto } from './dto/sesion-pagination.dto';
-import { CrearDescriptionDto } from './dto/crear-descripcion.dto';
 
 @Controller('descripciones-imagenes')
 export class DescripcionesImagenesController {
@@ -15,18 +12,21 @@ export class DescripcionesImagenesController {
     @Inject(NATS_SERVICE) private readonly client: ClientProxy
   ) {}
 
-  //--------------IMAGENES----------------
+  /*-------------------------------------------------------------------------*/
+  /*---------------------------------IMÁGENES--------------------------------*/
+  /*-------------------------------------------------------------------------*/
   
-  @Post('uploadImage')
+  /* SUBIR IMAGEN */
+  @Post('uploadImage/:idUsuario')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile(
     new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({maxSize: 1024*1024*4}),
+        new MaxFileSizeValidator({maxSize: 1024*1024*10}),
         new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
       ]
     })
-  ) file: Express.Multer.File) {
+  ) file: Express.Multer.File, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
     // Convert buffer to base64 to ensure it serializes correctly over the transport (NATS)
     const payload = {
       originalname: file.originalname,
@@ -35,7 +35,7 @@ export class DescripcionesImagenesController {
       size: file.size,
       // base64 string
       bufferBase64: file.buffer.toString('base64'),
-      idUsuario: 1 //TODO: MIRAR ESTO COMO PASARLO DE MANERA ADECUADA
+      idUsuario: idUsuario
     };
     return this.client.send({cmd:'uploadImageCloudinary'}, payload)
     .pipe(
@@ -72,12 +72,16 @@ export class DescripcionesImagenesController {
     );
   }
 
-  @Get("todos")
-  findAll() {
-    return "hola" 
+  /* LISTAR IMAGENES SUBIDAS POR UN CUIDADOR */
+  @Get("listarImagenes/:cuidadorId")
+  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseIntPipe) cuidadorId: number ) {
+    return this.client.send({cmd:'listarImagenes'}, {cuidadorId, ...imagenPaginationDto}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 
-  //Buscar una imagen por id
+  /* BUSCAR IMAGEN POR ID */
   @Get('buscarImagen/:id')
   buscarImagen(@Param('id', ParseIntPipe) id: number) {
     return this.client.send({cmd:'buscarImagen'}, {id})
@@ -88,33 +92,20 @@ export class DescripcionesImagenesController {
     )
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDescripcionesImageneDto: any) {
-  }
+  /* ELIMINAR IMAGEN */
+  @Delete('eliminar/:id')
+  eliminarImagen(@Param('id') id: string) {
+    return this.client.send({cmd:'eliminarImagen'}, {id}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }  
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-  }
+  /*-------------------------------------------------------------------------*/
+  /*---------------------------------GROUNDTRUH--------------------------------*/
+  /*-------------------------------------------------------------------------*/
 
-  //------------- DESCRIPCION ----------------
-
-  @Post('crearDescripcion')
-  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
-    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
-    .pipe(
-      catchError(err => {
-        throw new RpcException(err);
-      })
-    )
-  }
-
-
-
-  
-
-  //--------------GROUNDTRUH----------------
-
-  //Crear groundTruth
+  /* CREAR GROUNDTRUTH */
   @Post('crearGroundTruth')
   crearGroundTruth(@Body() grondTruthDto: CrearGroundTruthDto){
     return this.client.send({cmd:'crearGroundTruth'}, grondTruthDto)
@@ -125,7 +116,7 @@ export class DescripcionesImagenesController {
     )
   }
 
-  //Buscar groundTruth por id
+  /*BUSCAR GROUNDTRURH ID */
   @Get('buscarGroundTruth/:id')
   buscarGroundTruth(@Param('id', ParseIntPipe) id: number){
     return this.client.send({cmd:'buscarGroundTruth'}, {id})
@@ -136,8 +127,8 @@ export class DescripcionesImagenesController {
     )
   }
 
-  //Buscar groundTruth por id imágen
-  @Get('buscarGroundTruth/:id')
+  /* BUSCAR GROUNDTRUTH POR ID IMAGEN*/
+  @Get('buscarGroundTruthImagen/:id')
   buscarGroundTruthIdImagen(@Param('id', ParseIntPipe) id: number){
     return this.client.send({cmd:'buscarGroundTruthIdImagen'}, {id})
     .pipe(
@@ -147,8 +138,28 @@ export class DescripcionesImagenesController {
     )
   }
 
-  //---------------SESSIONS-----------------
-  //Crear sesión
+  /* ACTUALIZAR GROUNDTRUTH */
+  @Patch('actualizarGt/:id')
+  actualizarGroundTruth(@Param('id', ParseIntPipe) id: number, @Body() actualizarGroundTruthDto: ActualizarGroundTruthDto){
+    return this.client.send({cmd:'actualizarGroundTruth'}, {id, ...actualizarGroundTruthDto}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  @Delete('eliminarGroundTruth/:id')
+  elimiarGroundTruth(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'eliminarGroundTruth'}, {id}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  /*-------------------------------------------------------------------------*/
+  /*---------------------------------SESIONES--------------------------------*/
+  /*-------------------------------------------------------------------------*/
+
+  /* CREAR SESIÓN */
   @Post('crearSesion')
   crearSesion(@Body() crearSesionDto: CrearSesionDto){
     return this.client.send({cmd:'crearSesion'},crearSesionDto)
@@ -159,7 +170,18 @@ export class DescripcionesImagenesController {
     )
   }
 
-  //Listar sesiones
+
+  /* BUSCAR SESIÓN */
+  @Get('buscarSesion/:id')
+  buscarSesion(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'buscarSesion'}, {id}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+
+  /* LISTAR SESIONES */
   @Get('listarSesiones')
   listarSesiones(@Query() sesionPaginationDto: SesionPaginationDto){
     return this.client.send({cmd:'listarSesiones'}, sesionPaginationDto)
@@ -170,8 +192,45 @@ export class DescripcionesImagenesController {
     )
   }
 
+  @Patch('actualizarSesion/:id')
+  actualizarSesion(@Body() actualizarSesionDto: ActualizarSesionDto, @Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'actualizarSesion'}, {id, ...actualizarSesionDto}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
 
-  //PUNTAJE
+  }
 
+  /*-------------------------------------------------------------------------*/
+  /*---------------------------------DESCRIPCIÓN--------------------------------*/
+  /*-------------------------------------------------------------------------*/
 
+  /* CREAR DESCRIPCIÓN */
+  @Post('crearDescripcion')
+  crearDescripcion(@Body() crearDescripcionDto: CrearDescriptionDto){
+    return this.client.send({cmd:'crearDescripcion'}, crearDescripcionDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+  /* BUSCAR DESCRIPCIÓN */
+  @Get('buscarDescripcion/:id')
+  buscarDescripcion(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'buscarDescripcion'}, {id}).
+    pipe(catchError(err =>{
+      throw new RpcException(err);
+    }))
+  }
+
+  /* LISTAR DESCRIPCIONES DE UNA SESIÓN*/
+  @Get('listarDescripciones/:id')
+  listarDescripciones(@Query() descripcionesPaginationDto: DescripcionPaginationDto){
+    return this.client.send({cmd:'listarDescripciones'},descripcionesPaginationDto).
+    pipe(catchError(err =>{
+      throw new RpcException(err);
+    }))
+  }
 }
