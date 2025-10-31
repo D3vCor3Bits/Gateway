@@ -73,9 +73,9 @@ export class DescripcionesImagenesController {
   }
 
   /* LISTAR IMAGENES SUBIDAS POR UN CUIDADOR */
-  @Get("listarImagenes")
-  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto) {
-    return this.client.send({cmd:'listarImagenes'}, imagenPaginationDto).
+  @Get("listarImagenes/:cuidadorId")
+  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseIntPipe) cuidadorId: number ) {
+    return this.client.send({cmd:'listarImagenes'}, {cuidadorId, ...imagenPaginationDto}).
     pipe(catchError(err => {
       throw new RpcException(err);
     }))
@@ -140,8 +140,19 @@ export class DescripcionesImagenesController {
 
   /* ACTUALIZAR GROUNDTRUTH */
   @Patch('actualizarGt/:id')
-  actualizarGroundTruth(@Body() actualizarGroundTruthDto: ActualizarGroundTruthDto, @Param('id', ParseIntPipe) id: number){
-    return this.client.send({cmd:'actualizarGroundTruth'}, {id, ...actualizarGroundTruthDto})
+  actualizarGroundTruth(@Param('id', ParseIntPipe) id: number, @Body() actualizarGroundTruthDto: ActualizarGroundTruthDto){
+    return this.client.send({cmd:'actualizarGroundTruth'}, {id, ...actualizarGroundTruthDto}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  @Delete('eliminarGroundTruth/:id')
+  elimiarGroundTruth(@Param('id', ParseIntPipe) id: number){
+    return this.client.send({cmd:'eliminarGroundTruth'}, {id}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 
   /*-------------------------------------------------------------------------*/
