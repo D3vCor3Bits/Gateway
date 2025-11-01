@@ -1,31 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject } from '@nestjs/common';
-import { CreateAlertasReporteDto } from './dto/create-alertas-reporte.dto';
-import { UpdateAlertasReporteDto } from './dto/update-alertas-reporte.dto';
-import { ClientProxy } from '@nestjs/microservices';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
+import { PuntajeDto } from './dto/puntaje.dto';
+import { SesionPuntajeDto } from './dto/sesion.puntaje.dto';
+import { catchError } from 'rxjs';
 
 @Controller('alertas-reportes')
 export class AlertasReportesController {
   constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
-  @Post()
-  create(@Body() createAlertasReporteDto: CreateAlertasReporteDto) {
-    return this.client.send('createAlertasReporte',{})
+  @Post('alertaPuntaje')
+  crearAlertaPuntaje(@Body() puntajeDto: PuntajeDto) {
+    return this.client.send({cmd:'alertasEvaluarPuntaje'},puntajeDto)
   }
 
-  @Get()
-  findAll() {
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAlertasReporteDto: UpdateAlertasReporteDto) {
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Post('reporteTiempo/:idPaciente')
+  crearReporte(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+    return this.client.send({cmd:'reporteTiempo'}, {idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 }
