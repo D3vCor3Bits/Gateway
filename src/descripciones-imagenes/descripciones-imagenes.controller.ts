@@ -233,4 +233,20 @@ export class DescripcionesImagenesController {
       throw new RpcException(err);
     }))
   }
+
+  @Get('cantidadSesiones/:idPaciente')
+  cantidadSesiones(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+    return this.client.send({cmd:'cantidadSesiones'}, {idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+ 
+  @Get('baseline/:idPaciente')
+  baselinePaciente(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+    return this.client.send({cmd:'baseline'},{idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
 }
