@@ -8,6 +8,7 @@ import {
   Delete,
   Inject,
   ParseIntPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CreateUsuariosAutenticacionDto } from './dto/create-usuarios-autenticacion.dto';
 import { UpdateUsuariosAutenticacionDto } from './dto/update-usuarios-autenticacion.dto';
@@ -44,12 +45,12 @@ export class UsuariosAutenticacionController {
   }
 
   @Get('buscarUsuario/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     //Tener mucho cuidado con el tipo de dato del Id, importante parsear
     //para que cuando se hagan consultas a BD no de error
     //IMPORTANTE: hacer el throw del RpcException y asegurarse de estar haciendo el throw en el microservicio para que lance la excepción que es, REVISAR EL RESTO DEL CÓDIGO (descripciones y el otro repo) PARA ENTENDER
     return this.client
-      .send({ cmd: 'findOneUsuariosAutenticacion' }, { id })
+      .send({ cmd: 'findUserById'}, { id })
       .pipe(
         catchError((err) => {
           throw new RpcException(err);
