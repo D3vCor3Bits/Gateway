@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe, ParseUUIDPipe } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
@@ -17,7 +17,7 @@ export class DescripcionesImagenesController {
   /*-------------------------------------------------------------------------*/
   
   /* SUBIR IMAGEN */
-  @Post('uploadImage/:idUsuario')
+  @Post('uploadImage/:idCuidador')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile(
     new ParseFilePipe({
@@ -26,7 +26,7 @@ export class DescripcionesImagenesController {
         new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
       ]
     })
-  ) file: Express.Multer.File, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
+  ) file: Express.Multer.File, @Param('idCuidador', ParseUUIDPipe) idUsuario: string) {
     // Convert buffer to base64 to ensure it serializes correctly over the transport (NATS)
     const payload = {
       originalname: file.originalname,
@@ -74,7 +74,7 @@ export class DescripcionesImagenesController {
 
   /* LISTAR IMAGENES SUBIDAS POR UN CUIDADOR */
   @Get("listarImagenes/:cuidadorId")
-  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseIntPipe) cuidadorId: number ) {
+  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseUUIDPipe) cuidadorId: string ) {
     return this.client.send({cmd:'listarImagenes'}, {cuidadorId, ...imagenPaginationDto}).
     pipe(catchError(err => {
       throw new RpcException(err);
