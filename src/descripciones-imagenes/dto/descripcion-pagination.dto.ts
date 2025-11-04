@@ -1,8 +1,7 @@
-import { IsNumber, IsPositive } from "class-validator";
+import { IsNumber, IsPositive, IsString } from "class-validator";
 import { PaginationDto } from "src/common";
 
 export class DescripcionPaginationDto extends PaginationDto{
-    @IsNumber()
-    @IsPositive()
-    idSesion: number
+    @IsString()
+    idSesion: string
 }
