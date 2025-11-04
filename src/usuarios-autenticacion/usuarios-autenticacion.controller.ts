@@ -17,6 +17,8 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
 import { loginUsuarioDto } from './dto/login-usuario.dto';
 import { asignarMedpacienteDto } from './dto/asignar-medpaciente.dto';
+import { asignarCuidadorPacienteDto } from './dto/asignar-pacientecuidador.dto';
+import { crearInvitacionDto } from './dto/crear-invitacion.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
@@ -95,5 +97,21 @@ export class UsuariosAutenticacionController {
     pipe(catchError(err => {
       throw new RpcException(err);
     }))
+  }
+   @Post('asignarCuidador')
+  asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
+    return this.client.send({ cmd: 'pacienteCuidador' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+  @Post('crearInvitacion')
+  crearInvitacion(@Body() dto: crearInvitacionDto) {
+    return this.client.send({ cmd: 'crearInvitacion' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 }
