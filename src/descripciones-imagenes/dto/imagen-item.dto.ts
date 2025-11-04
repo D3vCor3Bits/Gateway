@@ -19,4 +19,7 @@ export class ImagenItemDto{
 
     @IsString()
     formato: string;
+
+    @IsString()
+    idSesion: string;
 }
