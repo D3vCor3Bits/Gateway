@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
+import { PuntajeDto } from './dto/puntaje.dto';
+import { SesionPuntajeDto } from './dto/sesion.puntaje.dto';
 import { catchError } from 'rxjs';
 import { BaselineDto } from './dto/baseline.dto';
-import { PuntajeDto } from './dto';
 
 @Controller('alertas-reportes')
 export class AlertasReportesController {
