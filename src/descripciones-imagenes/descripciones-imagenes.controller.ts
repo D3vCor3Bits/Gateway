@@ -17,7 +17,7 @@ export class DescripcionesImagenesController {
   /*-------------------------------------------------------------------------*/
   
   /* SUBIR IMAGEN */
-  @Post('uploadImage/:idUsuario')
+  @Post('uploadImage/:idCuidador')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile(
     new ParseFilePipe({
@@ -26,7 +26,7 @@ export class DescripcionesImagenesController {
         new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
       ]
     })
-  ) file: Express.Multer.File, @Param('idUsuario', ParseUUIDPipe) idUsuario: string) {
+  ) file: Express.Multer.File, @Param('idCuidador', ParseUUIDPipe) idUsuario: string) {
     // Convert buffer to base64 to ensure it serializes correctly over the transport (NATS)
     const payload = {
       originalname: file.originalname,
@@ -40,7 +40,7 @@ export class DescripcionesImagenesController {
     return this.client.send({cmd:'uploadImageCloudinary'}, payload)
     .pipe(
       catchError((err) => {
-        return throwError(() => new RpcException(err));
+        throw new RpcException(err)
       })
     );
   }
@@ -226,7 +226,7 @@ export class DescripcionesImagenesController {
   }
 
   /* LISTAR DESCRIPCIONES DE UNA SESIÓN*/
-  @Get('listarDescripciones/:id')
+  @Get('listarDescripciones')
   listarDescripciones(@Query() descripcionesPaginationDto: DescripcionPaginationDto){
     return this.client.send({cmd:'listarDescripciones'},descripcionesPaginationDto).
     pipe(catchError(err =>{
@@ -235,7 +235,7 @@ export class DescripcionesImagenesController {
   }
 
   @Get('cantidadSesiones/:idPaciente')
-  cantidadSesiones(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+  cantidadSesiones(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
     return this.client.send({cmd:'cantidadSesiones'}, {idPaciente}).
     pipe(catchError(err => {
       throw new RpcException(err);
@@ -243,7 +243,7 @@ export class DescripcionesImagenesController {
   }
  
   @Get('baseline/:idPaciente')
-  baselinePaciente(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+  baselinePaciente(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
     return this.client.send({cmd:'baseline'},{idPaciente}).
     pipe(catchError(err => {
       throw new RpcException(err);

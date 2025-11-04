@@ -17,7 +17,7 @@ export class CrearSesionDto{
 
     @IsNumber()
     @IsOptional()
-    sessionRecall: number
+    sessionRecall: number 
 
     @IsNumber()
     @IsOptional()
@@ -25,7 +25,15 @@ export class CrearSesionDto{
 
     @IsNumber()
     @IsOptional()
+    sessionOmision: number
+
+    @IsNumber()
+    @IsOptional()
     sessionCoherencia: number
+
+    @IsNumber()
+    @IsOptional()
+    sessionFluidez: number
 
     @IsNumber()
     @IsOptional()
@@ -33,5 +41,9 @@ export class CrearSesionDto{
 
     @IsString()
     @IsOptional()
-    conclusion: string
+    conclusionTecnica: string
+
+    @IsString()
+    @IsOptional()
+    conclusionNormal: string
 }
