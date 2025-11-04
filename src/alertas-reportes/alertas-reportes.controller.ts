@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
 import { catchError } from 'rxjs';
+import { BaselineDto } from './dto/baseline.dto';
 import { PuntajeDto } from './dto';
 
 @Controller('alertas-reportes')
@@ -19,5 +20,10 @@ export class AlertasReportesController {
     pipe(catchError(err => {
       throw new RpcException(err);
     }))
+  }
+
+  @Post('baseline')
+  generarAviso(@Body() baselineDto: BaselineDto){
+    return this.client.emit({cmd:'generarAvisoBaseline'}, baselineDto)
   }
 }
