@@ -8,9 +8,8 @@ export class ImagenItemDto{
 
     fechaSubida: Date;
 
-    @IsNumber()
-    @IsPositive()
-    idCuidador: number;
+    @IsString()
+    idCuidador: string;
 
     @IsString()
     idAsset: string;
@@ -20,4 +19,7 @@ export class ImagenItemDto{
 
     @IsString()
     formato: string;
+
+    @IsString()
+    idSesion: string;
 }

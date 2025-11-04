@@ -1,10 +1,10 @@
-import {IsNumber, IsEnum, IsString, IsOptional} from 'class-validator';
+import {IsNumber, IsEnum, IsString, IsOptional, IsArray} from 'class-validator';
 import { estado_sesion, estadoListDto } from '../enum/estado.enum';
 
 export class CrearSesionDto{
 
-    @IsNumber()
-    idPaciente: number
+    @IsString()
+    idCuidador: string
 
     @IsOptional()
     fechaInicio: Date
@@ -17,7 +17,7 @@ export class CrearSesionDto{
 
     @IsNumber()
     @IsOptional()
-    sessionRecall: number
+    sessionRecall: number 
 
     @IsNumber()
     @IsOptional()
@@ -25,7 +25,15 @@ export class CrearSesionDto{
 
     @IsNumber()
     @IsOptional()
+    sessionOmision: number
+
+    @IsNumber()
+    @IsOptional()
     sessionCoherencia: number
+
+    @IsNumber()
+    @IsOptional()
+    sessionFluidez: number
 
     @IsNumber()
     @IsOptional()
@@ -33,5 +41,12 @@ export class CrearSesionDto{
 
     @IsString()
     @IsOptional()
-    conclusion: string
+    conclusionTecnica: string
+
+    @IsString()
+    @IsOptional()
+    conclusionNormal: string
+
+    @IsArray()
+    imagenesIds: number[]
 }

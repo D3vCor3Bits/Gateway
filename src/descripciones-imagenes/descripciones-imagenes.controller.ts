@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, ParseIntPipe, Query, UsePipes, ValidationPipe, ParseUUIDPipe } from '@nestjs/common';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
 import { ActualizarGroundTruthDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
+import { PaginationDto } from 'src/common';
 
 @Controller('descripciones-imagenes')
 export class DescripcionesImagenesController {
@@ -17,7 +18,7 @@ export class DescripcionesImagenesController {
   /*-------------------------------------------------------------------------*/
   
   /* SUBIR IMAGEN */
-  @Post('uploadImage/:idUsuario')
+  @Post('uploadImage/:idCuidador')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile(
     new ParseFilePipe({
@@ -26,7 +27,7 @@ export class DescripcionesImagenesController {
         new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
       ]
     })
-  ) file: Express.Multer.File, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
+  ) file: Express.Multer.File, @Param('idCuidador', ParseUUIDPipe) idUsuario: string) {
     // Convert buffer to base64 to ensure it serializes correctly over the transport (NATS)
     const payload = {
       originalname: file.originalname,
@@ -40,7 +41,7 @@ export class DescripcionesImagenesController {
     return this.client.send({cmd:'uploadImageCloudinary'}, payload)
     .pipe(
       catchError((err) => {
-        return throwError(() => new RpcException(err));
+        throw new RpcException(err)
       })
     );
   }
@@ -74,7 +75,7 @@ export class DescripcionesImagenesController {
 
   /* LISTAR IMAGENES SUBIDAS POR UN CUIDADOR */
   @Get("listarImagenes/:cuidadorId")
-  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseIntPipe) cuidadorId: number ) {
+  listarImagenes(@Query() imagenPaginationDto: ImagenPaginationDto, @Param('cuidadorId', ParseUUIDPipe) cuidadorId: string ) {
     return this.client.send({cmd:'listarImagenes'}, {cuidadorId, ...imagenPaginationDto}).
     pipe(catchError(err => {
       throw new RpcException(err);
@@ -192,6 +193,19 @@ export class DescripcionesImagenesController {
     )
   }
 
+
+ /* LISTAR SESIONES CON GT */
+  @Get('listarSesionesGt')
+  listarSesionesGt(@Query() sesionPaginationDto: SesionPaginationDto){
+    return this.client.send({cmd:'listarSesionesGt'}, sesionPaginationDto)
+    .pipe(
+      catchError(err => {
+        throw new RpcException(err);
+      })
+    )
+  }
+
+
   @Patch('actualizarSesion/:id')
   actualizarSesion(@Body() actualizarSesionDto: ActualizarSesionDto, @Param('id', ParseIntPipe) id: number){
     return this.client.send({cmd:'actualizarSesion'}, {id, ...actualizarSesionDto}).
@@ -199,6 +213,22 @@ export class DescripcionesImagenesController {
       throw new RpcException(err);
     }))
 
+  }
+
+  @Get('cantidadSesiones/:idPaciente')
+  cantidadSesiones(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
+    return this.client.send({cmd:'cantidadSesiones'}, {idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+ 
+  @Get('baseline/:idPaciente')
+  baselinePaciente(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
+    return this.client.send({cmd:'baseline'},{idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 
   /*-------------------------------------------------------------------------*/
@@ -226,11 +256,12 @@ export class DescripcionesImagenesController {
   }
 
   /* LISTAR DESCRIPCIONES DE UNA SESIÓN*/
-  @Get('listarDescripciones/:id')
-  listarDescripciones(@Query() descripcionesPaginationDto: DescripcionPaginationDto){
-    return this.client.send({cmd:'listarDescripciones'},descripcionesPaginationDto).
+  @Get('listarDescripciones/:idSesion')
+  listarDescripciones(@Query() descripcionesPaginationDto: PaginationDto, @Param('idSesion', ParseIntPipe) idSesion: number){
+    return this.client.send({cmd:'listarDescripciones'},{idSesion, ...descripcionesPaginationDto}).
     pipe(catchError(err =>{
       throw new RpcException(err);
     }))
   }
+
 }

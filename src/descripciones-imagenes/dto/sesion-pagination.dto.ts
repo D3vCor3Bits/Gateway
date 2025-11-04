@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsNumber } from "class-validator";
+import { IsEnum, IsOptional, IsNumber, IsString } from "class-validator";
 import { PaginationDto } from "src/common";
 import { estado_sesion, estadoListDto } from "../enum/estado.enum";
 
@@ -10,6 +10,6 @@ export class SesionPaginationDto extends PaginationDto{
     })
     estado_sesion: estado_sesion
 
-    @IsNumber()
-    idPaciente: number
+    @IsString()
+    idPaciente: string
 }

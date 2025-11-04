@@ -9,15 +9,10 @@ export class CrearDescriptionDto{
     @IsOptional()
     fecha: string
 
-    @IsNumber()
-    @IsPositive()
-    idPaciente: number
+    @IsString()
+    idPaciente: string
 
     @IsNumber()
     @IsPositive()
     idImagen: number
-
-    @IsNumber()
-    @IsPositive()
-    idSesion: number
 }
