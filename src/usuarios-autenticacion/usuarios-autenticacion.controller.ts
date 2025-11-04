@@ -79,4 +79,21 @@ export class UsuariosAutenticacionController {
       }),
     );
   }
+
+
+  @Get('pacienteCuidador/:idCuidador')
+  traerPacienteDeCuidador(@Param('idCuidador', ParseUUIDPipe) idCuidador: string){
+    return this.client.send({cmd:'pacienteCuidador'},{idCuidador}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  @Get('medicoPaciente/:idPaciente')
+  traerMedicoDeCuidador(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
+    return this.client.send({cmd:'pacienteMedico'},{idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
 }
