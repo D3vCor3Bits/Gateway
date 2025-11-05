@@ -17,6 +17,8 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
 import { loginUsuarioDto } from './dto/login-usuario.dto';
 import { asignarMedpacienteDto } from './dto/asignar-medpaciente.dto';
+import { asignarCuidadorPacienteDto } from './dto/asignar-pacientecuidador.dto';
+import { crearInvitacionDto } from './dto/crear-invitacion.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
@@ -74,6 +76,39 @@ export class UsuariosAutenticacionController {
   @Post('asignarMedico')
   asignarMedico(@Body() dto: asignarMedpacienteDto) {
     return this.client.send({ cmd: 'asignarMedpaciente' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
+
+  @Get('pacienteCuidador/:idCuidador')
+  traerPacienteDeCuidador(@Param('idCuidador', ParseUUIDPipe) idCuidador: string){
+    return this.client.send({cmd:'pacienteCuidador'},{idCuidador}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  @Get('medicoPaciente/:idPaciente')
+  traerMedicoDeCuidador(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
+    return this.client.send({cmd:'pacienteMedico'},{idPaciente}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+   @Post('asignarCuidador')
+  asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
+    return this.client.send({ cmd: 'pacienteCuidador' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+  @Post('crearInvitacion')
+  crearInvitacion(@Body() dto: crearInvitacionDto) {
+    return this.client.send({ cmd: 'crearInvitacion' }, dto).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
 import { PuntajeDto } from './dto/puntaje.dto';
@@ -16,7 +16,7 @@ export class AlertasReportesController {
   }
 
   @Post('reporteTiempo/:idPaciente')
-  crearReporte(@Param('idPaciente', ParseIntPipe) idPaciente: number){
+  crearReporte(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
     return this.client.send({cmd:'reporteTiempo'}, {idPaciente}).
     pipe(catchError(err => {
       throw new RpcException(err);
