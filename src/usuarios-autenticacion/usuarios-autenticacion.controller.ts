@@ -9,6 +9,7 @@ import {
   Inject,
   ParseIntPipe,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { CreateUsuariosAutenticacionDto } from './dto/create-usuarios-autenticacion.dto';
 import { UpdateUsuariosAutenticacionDto } from './dto/update-usuarios-autenticacion.dto';
@@ -113,5 +114,16 @@ export class UsuariosAutenticacionController {
         throw new RpcException(err);
       }),
     );
+  }
+
+  @Get('verificarToken')
+  verificarInvitacion(@Query('token') token: string) {
+    return this.client
+      .send({ cmd: 'verificarInvitacion'}, { token })
+      .pipe(
+        catchError((err) => {
+          throw new RpcException(err);
+        }),
+      );
   }
 }
