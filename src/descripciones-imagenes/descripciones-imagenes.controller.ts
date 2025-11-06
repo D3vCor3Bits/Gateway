@@ -3,7 +3,7 @@ import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
-import { ActualizarGroundTruthDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
+import { ActualizarGroundTruthDto, ActualizarImagenDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
 import { PaginationDto } from 'src/common';
 
@@ -91,6 +91,16 @@ export class DescripcionesImagenesController {
         throw new RpcException(err);
       })
     )
+  }
+
+
+  @Patch('actualizarImagen/:idImagen')
+  actualizarImagen(@Body() actualizarImagen: ActualizarImagenDto,@Param('idImagen', ParseIntPipe) idImagen: number){
+    
+    return this.client.send({cmd:'actualizarImagen'}, {idImagen, ...actualizarImagen}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 
   /* ELIMINAR IMAGEN */

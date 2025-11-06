@@ -1,6 +1,6 @@
 import {IsNumber, IsEnum, IsString, IsOptional, IsArray, IsDate, IsBoolean} from 'class-validator';
-import { Type } from 'class-transformer';
 import { estado_sesion, estadoListDto } from '../enum/estado.enum';
+import { Type } from 'class-transformer';
 
 export class CrearSesionDto{
 
@@ -11,7 +11,7 @@ export class CrearSesionDto{
         message: `Los status válidos son: ${estadoListDto}`
     })
     @IsOptional()
-    estado: estado_sesion
+    estado: estado_sesion.pendiente
 
     @IsNumber()
     @IsOptional()
@@ -52,4 +52,8 @@ export class CrearSesionDto{
     @Type(() => Date)
     @IsDate()
     fechaInicioPropuesta?: Date
+    
+    @IsOptional()
+    @IsBoolean()
+    activacion?: boolean
 }
