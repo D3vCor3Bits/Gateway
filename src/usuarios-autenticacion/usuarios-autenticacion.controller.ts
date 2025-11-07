@@ -131,4 +131,9 @@ export class UsuariosAutenticacionController {
   pacientesMedico(@Param('idMedico', ParseUUIDPipe) idMedico: string){
     return this.client.send({cmd:'pacientesMedico'}, {idMedico})
   }
+
+  @Get('totalUsuarios')
+  totalUsuarios(){
+    return this.client.send({cmd:'totalUsuarios'}, {});
+  }
 }
