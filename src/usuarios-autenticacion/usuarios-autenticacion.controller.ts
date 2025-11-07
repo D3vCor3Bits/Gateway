@@ -126,4 +126,9 @@ export class UsuariosAutenticacionController {
         }),
       );
   }
+
+  @Get('pacientesDeMedico/:idMedico')
+  pacientesMedico(@Param('idMedico', ParseUUIDPipe) idMedico: string){
+    return this.client.send({cmd:'pacientesMedico'}, {idMedico})
+  }
 }
