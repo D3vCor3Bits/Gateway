@@ -274,4 +274,17 @@ export class DescripcionesImagenesController {
     }))
   }
 
+  @Get('totalSesionCompletadas')
+  totalSesiones(){
+    return this.client.send({cmd:'totalSesiones'},{});
+  }
+
+  /* AGREGAR NOTAS DEL MÉDICO A UNA SESIÓN */
+  @Patch('sesion/:idSesion/notas-medico')
+  agregarNotasMedico(@Param('idSesion', ParseIntPipe) idSesion: number, @Body('notasMedico') notasMedico: string){
+    return this.client.send({cmd:'agregarNotasMedico'}, { idSesion, notasMedico }).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
 }
