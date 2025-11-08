@@ -46,6 +46,33 @@ export class DescripcionesImagenesController {
     );
   }
 
+  /* SUBIR FOTO DE PERFIL */
+  @Post('uploadFotoPerfil/:idUsuario')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFotoPerfil(@UploadedFile(
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({maxSize: 1024*1024*5}),
+        new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
+      ]
+    })
+  ) file: Express.Multer.File, @Param('idUsuario', ParseUUIDPipe) idUsuario: string) {
+    const payload = {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      encoding: file.encoding,
+      size: file.size,
+      bufferBase64: file.buffer.toString('base64'),
+      idUsuario: idUsuario
+    };
+    return this.client.send({cmd:'uploadFotoPerfil'}, payload)
+    .pipe(
+      catchError((err) => {
+        throw new RpcException(err)
+      })
+    );
+  }
+
   //REVISAR PARA MANDAR VARIAS IMAGENES DE UNA
   @Post('uploadImages')
   @UseInterceptors(FilesInterceptor('files'))
