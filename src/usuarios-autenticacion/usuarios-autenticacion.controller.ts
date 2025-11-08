@@ -22,6 +22,7 @@ import { loginUsuarioDto } from './dto/login-usuario.dto';
 import { asignarMedpacienteDto } from './dto/asignar-medpaciente.dto';
 import { asignarCuidadorPacienteDto } from './dto/asignar-pacientecuidador.dto';
 import { crearInvitacionDto } from './dto/crear-invitacion.dto';
+import { actualizarContraseñaDto } from './dto/actualizar-contraseña.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
@@ -46,7 +47,7 @@ export class UsuariosAutenticacionController {
 
   @Get('buscarUsuarios')
   findAll() {
-    return this.client.send({ cmd: 'findUser' }, {});
+    return this.client.send({ cmd: 'findUsers' }, {});
   }
 
   @Get('buscarUsuario/:id')
@@ -149,7 +150,6 @@ export class UsuariosAutenticacionController {
     );
   }
 
-  
   @Post('perfil')
   async obtenerPerfil(@Req() req: Request) {
     const authHeader = req.headers.authorization;
@@ -166,5 +166,21 @@ export class UsuariosAutenticacionController {
       }),
     );
   }
-  
+
+  @Patch('actualizarContrasena')
+  actualizarContraseña(
+    @Body() dto: actualizarContraseñaDto,
+    @Req() req: Request,
+  ) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    return this.client.send({ cmd: 'contraseña' }, { ...dto, token }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
 }
