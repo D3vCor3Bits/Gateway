@@ -1,13 +1,14 @@
-import { IsEmail, IsString, MinLength, IsInt, IsOptional, IsArray } from 'class-validator';
-
+import { Type } from 'class-transformer';
+import { IsEmail, IsString, MinLength, IsOptional, IsArray, IsDate } from 'class-validator';
 
 export class CreateUsuariosAutenticacionDto {
     @IsString({ message: 'El nombre debe ser una cadena de texto.' })
     nombre: string;
 
-    @IsInt({ message: 'La edad debe ser un número entero.' })
+    @IsDate({ message: 'La fecha debe ser una fecha' })
     @IsOptional()
-    edad?: number;
+    @Type(() => Date)
+    fechaNacimiento?: Date;
 
     @IsString({ message: 'El estado debe ser una cadena de texto.' })
     @IsOptional()
