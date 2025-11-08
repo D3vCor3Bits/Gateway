@@ -202,5 +202,12 @@ actualizarCorreo(
     }),
   );
 }
-
+  @Get('usuariosSinRelacion')
+  findUsuariosSinRelacion() {
+    return this.client.send({ cmd: 'findUsuariosSinRelacion' }, {}).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
 }
