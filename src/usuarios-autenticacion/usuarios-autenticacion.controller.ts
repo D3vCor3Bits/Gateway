@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Inject,
+  Req,
   ParseIntPipe,
   ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { CreateUsuariosAutenticacionDto } from './dto/create-usuarios-autenticacion.dto';
 import { UpdateUsuariosAutenticacionDto } from './dto/update-usuarios-autenticacion.dto';
 import { NATS_SERVICE } from 'src/config';
@@ -52,13 +54,11 @@ export class UsuariosAutenticacionController {
     //Tener mucho cuidado con el tipo de dato del Id, importante parsear
     //para que cuando se hagan consultas a BD no de error
     //IMPORTANTE: hacer el throw del RpcException y asegurarse de estar haciendo el throw en el microservicio para que lance la excepción que es, REVISAR EL RESTO DEL CÓDIGO (descripciones y el otro repo) PARA ENTENDER
-    return this.client
-      .send({ cmd: 'findUserById'}, { id })
-      .pipe(
-        catchError((err) => {
-          throw new RpcException(err);
-        }),
-      );
+    return this.client.send({ cmd: 'findUserById' }, { id }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 
   @Patch('actualizarPerfil/:id')
@@ -83,23 +83,28 @@ export class UsuariosAutenticacionController {
     );
   }
 
-
   @Get('pacienteCuidador/:idCuidador')
-  traerPacienteDeCuidador(@Param('idCuidador', ParseUUIDPipe) idCuidador: string){
-    return this.client.send({cmd:'pacienteCuidador'},{idCuidador}).
-    pipe(catchError(err => {
-      throw new RpcException(err);
-    }))
+  traerPacienteDeCuidador(
+    @Param('idCuidador', ParseUUIDPipe) idCuidador: string,
+  ) {
+    return this.client.send({ cmd: 'pacienteCuidador' }, { idCuidador }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 
   @Get('medicoPaciente/:idPaciente')
-  traerMedicoDeCuidador(@Param('idPaciente', ParseUUIDPipe) idPaciente: string){
-    return this.client.send({cmd:'pacienteMedico'},{idPaciente}).
-    pipe(catchError(err => {
-      throw new RpcException(err);
-    }))
+  traerMedicoDeCuidador(
+    @Param('idPaciente', ParseUUIDPipe) idPaciente: string,
+  ) {
+    return this.client.send({ cmd: 'pacienteMedico' }, { idPaciente }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
-   @Post('asignarCuidador')
+  @Post('asignarCuidador')
   asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
     return this.client.send({ cmd: 'pacienteCuidador' }, dto).pipe(
       catchError((err) => {
@@ -118,22 +123,48 @@ export class UsuariosAutenticacionController {
 
   @Get('verificarToken')
   verificarInvitacion(@Query('token') token: string) {
-    return this.client
-      .send({ cmd: 'verificarInvitacion'}, { token })
-      .pipe(
-        catchError((err) => {
-          throw new RpcException(err);
-        }),
-      );
+    return this.client.send({ cmd: 'verificarInvitacion' }, { token }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 
   @Get('pacientesDeMedico/:idMedico')
-  pacientesMedico(@Param('idMedico', ParseUUIDPipe) idMedico: string){
-    return this.client.send({cmd:'pacientesMedico'}, {idMedico})
+  pacientesMedico(@Param('idMedico', ParseUUIDPipe) idMedico: string) {
+    return this.client.send({ cmd: 'pacientesMedico' }, { idMedico });
   }
 
   @Get('totalUsuarios')
-  totalUsuarios(){
-    return this.client.send({cmd:'totalUsuarios'}, {});
+  totalUsuarios() {
+    return this.client.send({ cmd: 'totalUsuarios' }, {});
   }
+
+  @Post('enviarOTP')
+  enviarOTP(@Body('email') email: string) {
+    return this.client.send({ cmd: 'enviarOTP' }, { email }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
+  
+  @Post('perfil')
+  async obtenerPerfil(@Req() req: Request) {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client.send({ cmd: 'getPerfilUsuario' }, { token }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+  
 }
