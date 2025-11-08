@@ -106,7 +106,7 @@ export class UsuariosAutenticacionController {
   }
   @Post('asignarCuidador')
   asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
-    return this.client.send({ cmd: 'pacienteCuidador' }, dto).pipe(
+    return this.client.send({ cmd: 'asignarCuidadorPaciente' }, dto).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),
