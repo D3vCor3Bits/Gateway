@@ -6,6 +6,7 @@ export class ImagenItemDto{
     @IsString()
     urlImagen: string;
 
+
     fechaSubida: Date;
 
     @IsString()
@@ -17,9 +18,9 @@ export class ImagenItemDto{
     @IsString()
     idPublicImage: string;
 
-    @IsString()
-    formato: string;
+    @IsNumber()
+    idSesion: number | null;
 
     @IsString()
-    idSesion: string;
+    formato: string;
 }

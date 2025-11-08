@@ -27,4 +27,9 @@ export class AlertasReportesController {
   generarAviso(@Body() baselineDto: BaselineDto){
     return this.client.emit({cmd:'generarAvisoBaseline'}, baselineDto)
   }
+
+  @Post('schedule')
+  probar(){
+    this.client.send({ cmd: 'testCronInactividad' }, {}).subscribe(console.log);
+  }
 }

@@ -3,7 +3,7 @@ import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express'
 import { catchError, throwError } from 'rxjs';
-import { ActualizarGroundTruthDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
+import { ActualizarGroundTruthDto, ActualizarImagenDto, ActualizarSesionDto, CrearDescriptionDto, CrearGroundTruthDto, DescripcionPaginationDto, ImagenPaginationDto, SesionPaginationDto } from './dto';
 import { CrearSesionDto } from './dto/crear-sesion.dto';
 import { PaginationDto } from 'src/common';
 
@@ -39,6 +39,33 @@ export class DescripcionesImagenesController {
       idUsuario: idUsuario
     };
     return this.client.send({cmd:'uploadImageCloudinary'}, payload)
+    .pipe(
+      catchError((err) => {
+        throw new RpcException(err)
+      })
+    );
+  }
+
+  /* SUBIR FOTO DE PERFIL */
+  @Post('uploadFotoPerfil/:idUsuario')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFotoPerfil(@UploadedFile(
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({maxSize: 1024*1024*5}),
+        new FileTypeValidator({fileType: '.(png|jpeg|jpg)'}),
+      ]
+    })
+  ) file: Express.Multer.File, @Param('idUsuario', ParseUUIDPipe) idUsuario: string) {
+    const payload = {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      encoding: file.encoding,
+      size: file.size,
+      bufferBase64: file.buffer.toString('base64'),
+      idUsuario: idUsuario
+    };
+    return this.client.send({cmd:'uploadFotoPerfil'}, payload)
     .pipe(
       catchError((err) => {
         throw new RpcException(err)
@@ -91,6 +118,16 @@ export class DescripcionesImagenesController {
         throw new RpcException(err);
       })
     )
+  }
+
+
+  @Patch('actualizarImagen/:idImagen')
+  actualizarImagen(@Body() actualizarImagen: ActualizarImagenDto,@Param('idImagen', ParseIntPipe) idImagen: number){
+    
+    return this.client.send({cmd:'actualizarImagen'}, {idImagen, ...actualizarImagen}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
   }
 
   /* ELIMINAR IMAGEN */
@@ -264,4 +301,17 @@ export class DescripcionesImagenesController {
     }))
   }
 
+  @Get('totalSesionCompletadas')
+  totalSesiones(){
+    return this.client.send({cmd:'totalSesiones'},{});
+  }
+
+  /* AGREGAR NOTAS DEL MÉDICO A UNA SESIÓN */
+  @Patch('sesion/:idSesion/notas-medico')
+  agregarNotasMedico(@Param('idSesion', ParseIntPipe) idSesion: number, @Body('notasMedico') notasMedico: string){
+    return this.client.send({cmd:'agregarNotasMedico'}, { idSesion, notasMedico }).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
 }
