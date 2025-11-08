@@ -23,6 +23,7 @@ import { asignarMedpacienteDto } from './dto/asignar-medpaciente.dto';
 import { asignarCuidadorPacienteDto } from './dto/asignar-pacientecuidador.dto';
 import { crearInvitacionDto } from './dto/crear-invitacion.dto';
 import { actualizarContraseñaDto } from './dto/actualizar-contraseña.dto';
+import { ActualizarCorreoDto } from './dto/actualizar-correo.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
@@ -183,4 +184,23 @@ export class UsuariosAutenticacionController {
       }),
     );
   }
+  @Patch('actualizarCorreo')
+actualizarCorreo(
+  @Body() dto: ActualizarCorreoDto,
+  @Req() req: Request,
+) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    throw new RpcException('Token no proporcionado');
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  return this.client.send({ cmd: 'actualizar-correo' }, { ...dto, token }).pipe(
+    catchError((err) => {
+      throw new RpcException(err);
+    }),
+  );
+}
+
 }
