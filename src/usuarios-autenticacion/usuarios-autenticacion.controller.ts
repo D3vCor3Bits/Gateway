@@ -25,7 +25,7 @@ import { crearInvitacionDto } from './dto/crear-invitacion.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
-  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) { }
 
   @Post('crearUsuario')
   create(@Body() dto: CreateUsuariosAutenticacionDto) {
@@ -50,15 +50,16 @@ export class UsuariosAutenticacionController {
   }
 
   @Get('buscarUsuario/:id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    //Tener mucho cuidado con el tipo de dato del Id, importante parsear
-    //para que cuando se hagan consultas a BD no de error
-    //IMPORTANTE: hacer el throw del RpcException y asegurarse de estar haciendo el throw en el microservicio para que lance la excepción que es, REVISAR EL RESTO DEL CÓDIGO (descripciones y el otro repo) PARA ENTENDER
-    return this.client.send({ cmd: 'findUserById' }, { id }).pipe(
-      catchError((err) => {
-        throw new RpcException(err);
-      }),
-    );
+  findOne(@Req() req: Request, @Param('id', ParseUUIDPipe) id: string) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client
+      .send({ cmd: 'findUserById' }, { token, id })
+      .pipe(catchError((err) => { throw new RpcException(err); }));
   }
 
   @Patch('actualizarPerfil/:id')
@@ -95,14 +96,14 @@ export class UsuariosAutenticacionController {
   }
 
   @Get('medicoPaciente/:idPaciente')
-  traerMedicoDeCuidador(
-    @Param('idPaciente', ParseUUIDPipe) idPaciente: string,
-  ) {
-    return this.client.send({ cmd: 'pacienteMedico' }, { idPaciente }).pipe(
-      catchError((err) => {
-        throw new RpcException(err);
-      }),
-    );
+  traerMedicoDePaciente(@Req() req: Request, @Param('idPaciente', ParseUUIDPipe) idPaciente: string) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new RpcException('Token no proporcionado');
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client
+      .send({ cmd: 'pacienteMedico' }, { token, idPaciente })
+      .pipe(catchError((err) => { throw new RpcException(err); }));
   }
   @Post('asignarCuidador')
   asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
@@ -131,8 +132,14 @@ export class UsuariosAutenticacionController {
   }
 
   @Get('pacientesDeMedico/:idMedico')
-  pacientesMedico(@Param('idMedico', ParseUUIDPipe) idMedico: string) {
-    return this.client.send({ cmd: 'pacientesMedico' }, { idMedico });
+  pacientesMedico(@Req() req: Request, @Param('idMedico', ParseUUIDPipe) idMedico: string) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new RpcException('Token no proporcionado');
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client
+      .send({ cmd: 'pacientesMedico' }, { token, idMedico })
+      .pipe(catchError((err) => { throw new RpcException(err); }));
   }
 
   @Get('totalUsuarios')
@@ -149,8 +156,8 @@ export class UsuariosAutenticacionController {
     );
   }
 
-  
-  @Post('perfil')
+
+  @Get('perfil')
   async obtenerPerfil(@Req() req: Request) {
     const authHeader = req.headers.authorization;
 
@@ -166,5 +173,34 @@ export class UsuariosAutenticacionController {
       }),
     );
   }
-  
+  @Post('subirFotoPerfil')
+  async subirImagenPerfil(@Req() req: Request, @Body('imagenUrl') imagenUrl: string) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client
+      .send({ cmd: 'uploadProfileImage' }, { token, imagenUrl })
+      .pipe(
+        catchError((err) => {
+          throw new RpcException(err);
+        }),
+      );
+  }
+  @Patch('desactivarUsuario')
+  async eliminarCuenta(@Req() req: Request) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    return this.client.send({ cmd: 'desactivarUsuario' }, { token }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
 }
