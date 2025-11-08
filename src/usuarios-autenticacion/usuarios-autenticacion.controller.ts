@@ -46,7 +46,7 @@ export class UsuariosAutenticacionController {
 
   @Get('buscarUsuarios')
   findAll() {
-    return this.client.send({ cmd: 'findAllUsuariosAutenticacion' }, {});
+    return this.client.send({ cmd: 'findUsers' }, {});
   }
 
   @Get('buscarUsuario/:id')
