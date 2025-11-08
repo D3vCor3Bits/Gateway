@@ -1,27 +1,47 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { envs } from './config';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { RpcCustomExceptionFilter } from './common/exceptions/rpc-custom-exception.filter';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 async function bootstrap() {
-  const logger = new Logger('Main-Gateway');
-
+  const logger = new Logger('Usuarios-Auth-MS');
+  // Crear aplicación HTTP
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api')
-
-  app.useGlobalPipes(  
-    new ValidationPipe({ 
-      whitelist: true, 
-      forbidNonWhitelisted: true, 
-    }) 
+  // Habilitar CORS
+  app.enableCors({
+    origin: ['http://localhost:3001', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: 
+    ['Content-Type', 'Authorization', 'Accept'],
+  });
+  app.setGlobalPrefix('api');
+  // Configurar validación global
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })
   );
 
-  app.useGlobalFilters(new RpcCustomExceptionFilter());
+  // Conectar microservicio NATS
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.NATS,
+    options: {
+      servers: envs.natsServers,
+    },
+  });
 
-  await app.listen(envs.port);
+  // Iniciar ambos
+  await app.startAllMicroservices();
+  await app.listen(envs.port || 3000);
 
-  logger.log(`Gateway corriendo en el PORT ${envs.port}`)
+  logger.log(`HTTP Server en http://localhost:${envs.port || 3000}`);
+  logger.log(` NATS conectado`);
 }
 bootstrap();
