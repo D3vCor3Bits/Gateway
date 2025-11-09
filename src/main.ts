@@ -2,8 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { envs } from './config';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import * as promClient from 'prom-client';
 
 dotenv.config();
 
@@ -11,6 +12,52 @@ async function bootstrap() {
   const logger = new Logger('Usuarios-Auth-MS');
   // Crear aplicación HTTP
   const app = await NestFactory.create(AppModule);
+
+  // ===== PROMETHEUS METRICS =====
+  const register = new promClient.Registry();
+  
+  // Métricas por defecto (CPU, Memoria, etc.)
+  promClient.collectDefaultMetrics({ register });
+
+  // Métricas custom
+  const httpRequestDuration = new promClient.Histogram({
+    name: 'http_request_duration_seconds',
+    help: 'Duration of HTTP requests in seconds',
+    labelNames: ['method', 'route', 'status_code'],
+    registers: [register],
+  });
+
+  const httpRequestTotal = new promClient.Counter({
+    name: 'http_requests_total',
+    help: 'Total number of HTTP requests',
+    labelNames: ['method', 'route', 'status_code'],
+    registers: [register],
+  });
+
+  // Endpoint para Prometheus
+  app.use('/metrics', async (req, res) => {
+    res.setHeader('Content-Type', register.contentType);
+    res.send(await register.metrics());
+  });
+
+  // Middleware para medir requests
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = (Date.now() - start) / 1000;
+      httpRequestDuration.observe(
+        { method: req.method, route: req.path, status_code: res.statusCode },
+        duration
+      );
+      httpRequestTotal.inc({
+        method: req.method,
+        route: req.path,
+        status_code: res.statusCode,
+      });
+    });
+    next();
+  });
+  // ===== END PROMETHEUS =====
 
   // Habilitar CORS
   app.enableCors({
@@ -20,7 +67,12 @@ async function bootstrap() {
     allowedHeaders: 
     ['Content-Type', 'Authorization', 'Accept'],
   });
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude:[{
+      path: '',
+      method: RequestMethod.GET
+    }]
+  });
   // Configurar validación global
   app.useGlobalPipes(
     new ValidationPipe({
@@ -40,6 +92,7 @@ async function bootstrap() {
   // Iniciar ambos
   await app.startAllMicroservices();
   await app.listen(envs.port || 3000);
+  console.log('HealthCheck added')
 
   logger.log(`HTTP Server en http://localhost:${envs.port || 3000}`);
   logger.log(` NATS conectado`);
