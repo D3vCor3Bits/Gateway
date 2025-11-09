@@ -210,4 +210,13 @@ actualizarCorreo(
       }),
     );
   }
+
+  @Delete('eliminarPacienteCuidador')
+  eliminarPacienteCuidador(@Body() dto: asignarCuidadorPacienteDto) {
+    return this.client.send({ cmd: 'eliminarPacienteCuidador' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
 }
