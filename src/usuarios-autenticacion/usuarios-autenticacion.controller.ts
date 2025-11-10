@@ -229,4 +229,13 @@ actualizarCorreo(
       version: '2.0'
     }
   }
+
+  @Patch('cuentaInactiva')
+  cuentaInactiva(@Body('userId', new ParseUUIDPipe()) userId: string) {
+    return this.client.send({ cmd: 'cuentaInactiva' }, { userId }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
 }
