@@ -219,4 +219,14 @@ actualizarCorreo(
       }),
     );
   }
+
+  @Get('pruebak8s')
+  pruebak8s(){
+    return {
+      message: '¡Hola desde Kubernetes!',
+      timestamp: new Date().toISOString(),
+      service: 'usuarios-autenticacion-ms',
+      version: '2.0'
+    }
+  }
 }
