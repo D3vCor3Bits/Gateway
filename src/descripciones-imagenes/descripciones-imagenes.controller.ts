@@ -268,6 +268,29 @@ export class DescripcionesImagenesController {
     }))
   }
 
+  /* LISTAR SESIONES CREADAS POR UN CUIDADOR */
+  @Get('listarSesionesCuidador/:idCuidador')
+  listarSesionesCuidador(@Param('idCuidador', ParseUUIDPipe) idCuidador: string, @Query() sesionPaginationDto: SesionPaginationDto){
+    return this.client.send({cmd:'listarSesionesCuidador'}, {idCuidador, ...sesionPaginationDto}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
+  /* LISTAR SESIONES DE UN PACIENTE CREADAS POR UN CUIDADOR */
+  @Get('listarSesionesPacientePorCuidador/:idPaciente/:idCuidador')
+  listarSesionesPacientePorCuidador(
+    @Param('idPaciente', ParseUUIDPipe) idPaciente: string, 
+    @Param('idCuidador', ParseUUIDPipe) idCuidador: string,
+    @Query() sesionPaginationDto: SesionPaginationDto
+  ){
+    const {idPaciente: _, ...paginationData} = sesionPaginationDto;
+    return this.client.send({cmd:'listarSesionesPacientePorCuidador'}, {idPaciente, idCuidador, ...paginationData}).
+    pipe(catchError(err => {
+      throw new RpcException(err);
+    }))
+  }
+
   /*-------------------------------------------------------------------------*/
   /*---------------------------------DESCRIPCIÓN--------------------------------*/
   /*-------------------------------------------------------------------------*/
