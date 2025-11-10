@@ -24,6 +24,7 @@ import { asignarCuidadorPacienteDto } from './dto/asignar-pacientecuidador.dto';
 import { crearInvitacionDto } from './dto/crear-invitacion.dto';
 import { actualizarContraseñaDto } from './dto/actualizar-contraseña.dto';
 import { ActualizarCorreoDto } from './dto/actualizar-correo.dto';
+import { subirImagenDto } from './dto/subir-imagen.dto';
 
 @Controller('usuarios-autenticacion')
 export class UsuariosAutenticacionController {
@@ -185,23 +186,22 @@ export class UsuariosAutenticacionController {
     );
   }
   @Patch('actualizarCorreo')
-actualizarCorreo(
-  @Body() dto: ActualizarCorreoDto,
-  @Req() req: Request,
-) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    throw new RpcException('Token no proporcionado');
+  actualizarCorreo(@Body() dto: ActualizarCorreoDto, @Req() req: Request) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new RpcException('Token no proporcionado');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    return this.client
+      .send({ cmd: 'actualizar-correo' }, { ...dto, token })
+      .pipe(
+        catchError((err) => {
+          throw new RpcException(err);
+        }),
+      );
   }
-
-  const token = authHeader.replace('Bearer ', '');
-
-  return this.client.send({ cmd: 'actualizar-correo' }, { ...dto, token }).pipe(
-    catchError((err) => {
-      throw new RpcException(err);
-    }),
-  );
-}
   @Get('usuariosSinRelacion')
   findUsuariosSinRelacion() {
     return this.client.send({ cmd: 'findUsuariosSinRelacion' }, {}).pipe(
@@ -221,18 +221,45 @@ actualizarCorreo(
   }
 
   @Get('pruebak8s')
-  pruebak8s(){
+  pruebak8s() {
     return {
       message: '¡Hola desde Kubernetes!',
       timestamp: new Date().toISOString(),
       service: 'usuarios-autenticacion-ms',
-      version: '2.0'
-    }
+      version: '2.0',
+    };
   }
 
   @Patch('cuentaInactiva')
-  cuentaInactiva(@Body('userId', new ParseUUIDPipe()) userId: string) {
+  cuentaInactiva(@Body('userId', ParseUUIDPipe) userId: string) {
     return this.client.send({ cmd: 'cuentaInactiva' }, { userId }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
+  @Post('imagenPerfil')
+  imagenPerfil(@Body() dto: subirImagenDto) {
+    return this.client.send({ cmd: 'imagenPerfil' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
+  @Patch('actualizarImagenPerfil')
+  actualizarImagenPerfil(@Body() dto: subirImagenDto) {
+    return this.client.send({ cmd: 'actualizarImagenPerfil' }, dto).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
+  @Delete('eliminarFotoPerfil/:userId')
+  eliminarFotoPerfil(@Param('userId', ParseUUIDPipe) userId: string) {
+    return this.client.send({ cmd: 'eliminarFotoPerfil' }, { userId }).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),
