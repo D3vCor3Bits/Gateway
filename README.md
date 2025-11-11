@@ -1,62 +1,3 @@
-# Descripciones-Imagenes Microservice
-
-Guía rápida para levantar el servicio en modo desarrollo.
-
-> Nota: estas instrucciones están orientadas a desarrollo local, no a producción.
-
-## Requisitos
-
-- Node.js (v18+ recomendado)
-- npm
-- PostgreSQL o la base de datos indicada en `DATABASE_URL` (usamos Prisma con Supabase)
-- NATS server
-
-## Instalación
-
-1. Clona el repositorio y entra en la carpeta:
-
-```powershell
-cd C:\ruta\a\descripciones-imagenes-ms
-npm install
-```
-
-2. Crea un archivo `.env` en la raíz con las variables necesarias teniendo en cuenta el .env.template:
-
-```
-PORT=3XXX
-NATS_SERVERS=nats://localhost:4222
-```
-
-- `PORT`: puerto donde correrá la app en desarrollo.
-- `NATS_SERVERS`: lista separada por comas si hay múltiples servidores NATS.
-
-
-## Comandos útiles (desarrollo)
-
-- Levantar en modo observación (recarga automática):
-
-```powershell
-npm run start:dev
-```
-
-## Mensajería (NATS)
-
-Se levanta un servidor de NATS con docker si no se tiene
-
-```powershell
-docker run -d --name nats-main -p 4222:4222 -p 8222:8222 nats 
-```
-
-Asegurarse de que `NATS_SERVERS` en `.env` apunte a `nats://localhost:4222`.
-
-## PROD
-
-Ejecutar
-```
-
-docker build -f dockerfile.prod -t client-gateway .
-```
-
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -82,7 +23,41 @@ docker build -f dockerfile.prod -t client-gateway .
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API Gateway para Douremember. Este servicio actúa como punto de entrada único para todas las peticiones HTTP del sistema, enrutando las solicitudes a los microservicios correspondientes a través de NATS.
+
+## Características
+
+- 🚪 Gateway REST API para todos los microservicios
+- 🔌 Comunicación con microservicios mediante NATS
+- 🛡️ Manejo centralizado de excepciones
+- ✅ Validación de datos con class-validator
+- 📤 Carga de archivos (imágenes)
+- 🔄 Enrutamiento a: usuarios-autenticacion-ms, descripciones-imagenes-ms, alertas-reportes-ms
+
+## Variables de Entorno
+
+Crea un archivo `.env` basado en `.env.template`:
+
+```bash
+PORT=3000
+
+# NATS Configuration
+NATS_SERVERS=nats://localhost:4222
+```
+
+## Requisitos Previos
+
+### Servidor NATS
+
+Es **importante** tener un servidor NATS corriendo en Docker:
+
+```bash
+docker run -d --name nats-main -p 4222:4222 -p 8222:8222 nats
+```
+
+Este comando levanta un contenedor NATS que expone:
+- Puerto `4222`: Para conexiones de clientes
+- Puerto `8222`: Para monitoreo HTTP
 
 ## Project setup
 
@@ -93,65 +68,29 @@ $ npm install
 ## Compile and run the project
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Run tests
+## Estructura del Proyecto
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+src/
+├── usuarios-autenticacion/
+│   ├── dto/                    # DTOs de autenticación y usuarios
+│   └── usuarios-autenticacion.controller.ts
+├── descripciones-imagenes/
+│   ├── dto/                    # DTOs de imágenes y descripciones
+│   └── descripciones-imagenes.controller.ts
+├── alertas-reportes/
+│   ├── dto/                    # DTOs de alertas y reportes
+│   └── alertas-reportes.controller.ts
+├── health-check/
+│   └── health-check.controller.ts  # Endpoint de salud
+├── common/
+│   ├── exceptions/             # Filtros de excepciones RPC
+│   └── pipes/                  # Pipes de validación
+├── config/
+│   └── envs.ts                 # Configuración de variables de entorno
+└── transports/
+    └── nats.module.ts          # Configuración de NATS
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
