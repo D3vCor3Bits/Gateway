@@ -63,7 +63,7 @@ async function bootstrap() {
   app.enableCors({
     origin: '*', // Permite cualquier origen (frontend puede llamar desde cualquier dominio)
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    credentials: true,
+    credentials: false,
     allowedHeaders: 
     ['Content-Type', 'Authorization', 'Accept'],
   });
