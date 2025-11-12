@@ -67,7 +67,8 @@ async function bootstrap() {
       'http://localhost:5173',
       'http://localhost:3005',
       'http://localhost:3006',
-      'https://do-u-remember-app.vercel.app'
+      'https://do-u-remember-app.vercel.app',
+      'https://admin.devcorebits.com'
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
