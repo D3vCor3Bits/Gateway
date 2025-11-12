@@ -61,11 +61,16 @@ async function bootstrap() {
 
   // Habilitar CORS
   app.enableCors({
-    origin: '*', // Permite cualquier origen (frontend puede llamar desde cualquier dominio)
+    origin: [
+      'https://www.devcorebits.com',
+      'https://devcorebits.com',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://do-u-remember-app.vercel.app'
+    ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    credentials: false,
-    allowedHeaders: 
-    ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
   app.setGlobalPrefix('api', {
     exclude:[{
