@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { CreateUsuariosAutenticacionDto } from './dto/create-usuarios-autenticacion.dto';
-import { UpdateUsuariosAutenticacionDto } from './dto/update-usuarios-autenticacion.dto';
 import { NATS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
@@ -62,14 +61,6 @@ export class UsuariosAutenticacionController {
         throw new RpcException(err);
       }),
     );
-  }
-
-  @Patch('actualizarPerfil/:id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUsuariosAutenticacionDto: UpdateUsuariosAutenticacionDto,
-  ) {
-    return this.client.send({ cmd: 'updateUsuariosAutenticacion' }, {});
   }
 
   @Delete('borrarPerfil/:id')
