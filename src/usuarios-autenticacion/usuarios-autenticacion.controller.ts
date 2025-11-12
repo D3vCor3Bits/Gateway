@@ -107,6 +107,18 @@ export class UsuariosAutenticacionController {
       }),
     );
   }
+  
+  @Get('pacientesMedico/:idMedico')
+  traerPacientesdeMedico(
+    @Param('idPaciente', ParseUUIDPipe) idPaciente: string,
+  ) {
+    return this.client.send({ cmd: 'medicoPaciente' }, { idPaciente }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
+  }
+
   @Post('asignarCuidador')
   asignarCuidador(@Body() dto: asignarCuidadorPacienteDto) {
     return this.client.send({ cmd: 'asignarCuidadorPaciente' }, dto).pipe(
